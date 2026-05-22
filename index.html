@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Semiologia do Sistema Locomotor</title>
+<style>
+  :root {
+    --azul-escuro:#1a3a6b; --azul-medio:#2563ab; --azul-claro:#3b82f6;
+    --azul-muito-claro:#dbeafe; --branco:#ffffff; --cinza-claro:#f0f6ff;
+    --cinza-texto:#374151; --verde:#16a34a; --verde-claro:#dcfce7;
+    --vermelho:#dc2626; --vermelho-claro:#fee2e2;
+    --amarelo:#ca8a04; --amarelo-claro:#fef9c3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI',Arial,sans-serif;
+    background:linear-gradient(135deg,#1a3a6b 0%,#2563ab 55%,#3b82f6 100%);
+    min-height:100vh; display:flex; align-items:flex-start;
+    justify-content:center; padding:20px 16px 48px;
+  }
+  .container{
+    background:var(--branco); border-radius:20px;
+    box-shadow:0 25px 60px rgba(0,0,0,0.3);
+    width:100%; max-width:780px; overflow:hidden;
+  }
+
+  /* HEADER */
+  .header{
+    background:linear-gradient(135deg,var(--azul-escuro),var(--azul-medio));
+    color:var(--branco); padding:26px 32px 22px; text-align:center;
+  }
+  .header .badge{
+    display:inline-block; background:rgba(255,255,255,0.18);
+    border:1px solid rgba(255,255,255,0.35); border-radius:20px;
+    padding:4px 16px; font-size:11px; letter-spacing:1.5px;
+    text-transform:uppercase; font-weight:600; margin-bottom:10px;
+  }
+  .header h1{font-size:21px;font-weight:800;margin-bottom:5px;}
+  .header p{font-size:13px;opacity:0.78;}
+
+  /* TELA NOME */
+  #tela-nome{padding:36px 34px;}
+  #tela-nome h2{color:var(--azul-escuro);font-size:20px;margin-bottom:8px;}
+  #tela-nome>p{color:#6b7280;font-size:14px;margin-bottom:24px;line-height:1.6;}
+  .info-box{
+    background:var(--azul-muito-claro);border-left:4px solid var(--azul-claro);
+    border-radius:8px;padding:14px 18px;margin-bottom:26px;
+    font-size:13px;color:var(--azul-escuro);line-height:1.8;
+  }
+  .info-box strong{display:block;margin-bottom:6px;font-size:14px;}
+  .campo-grupo{margin-bottom:20px;}
+  .campo-grupo label{display:block;font-size:13px;font-weight:600;color:var(--cinza-texto);margin-bottom:8px;}
+  .campo-grupo input{
+    width:100%;padding:12px 16px;border:2px solid #d1d5db;
+    border-radius:10px;font-size:15px;color:var(--cinza-texto);
+    transition:border-color 0.2s;outline:none;
+  }
+  .campo-grupo input:focus{border-color:var(--azul-claro);}
+  .btn-primario{
+    width:100%;padding:14px;
+    background:linear-gradient(135deg,var(--azul-medio),var(--azul-claro));
+    color:var(--branco);border:none;border-radius:10px;
+    font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;
+  }
+  .btn-primario:hover{background:linear-gradient(135deg,var(--azul-escuro),var(--azul-medio));transform:translateY(-1px);}
+
+  /* TELA QUIZ */
+  #tela-quiz{display:none;padding:26px 32px 32px;}
+
+  /* STATUS BAR */
+  .status-bar{display:flex;gap:10px;margin-bottom:20px;}
+  .status-item{
+    background:var(--cinza-claro);border-radius:10px;padding:8px 12px;
+    font-size:13px;font-weight:700;color:var(--azul-escuro);text-align:center;flex:1;
+  }
+  .status-item span{display:block;font-size:11px;font-weight:400;color:#6b7280;margin-bottom:2px;}
+
+  /* PROGRESSO */
+  .progresso-wrapper{margin-bottom:16px;}
+  .progresso-label{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;margin-bottom:5px;}
+  .progresso-bg{background:#e5e7eb;border-radius:8px;height:7px;overflow:hidden;}
+  .progresso-fill{height:100%;background:linear-gradient(90deg,var(--azul-claro),var(--azul-escuro));border-radius:8px;transition:width 0.4s ease;}
+
+  /* TIMER */
+  .timer-wrapper{margin-bottom:16px;}
+  .timer-label{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;margin-bottom:5px;}
+  #timer-seg{font-weight:700;color:var(--azul-escuro);}
+  #timer-seg.urgente{color:var(--vermelho);}
+  .timer-bar-bg{background:#e5e7eb;border-radius:8px;height:10px;overflow:hidden;}
+  .timer-bar{height:100%;background:linear-gradient(90deg,var(--azul-claro),var(--azul-escuro));border-radius:8px;transition:width 1s linear;}
+  .timer-bar.urgente{background:linear-gradient(90deg,#f97316,#dc2626);}
+
+  /* STREAK */
+  .streak-display{text-align:center;margin-bottom:12px;min-height:26px;}
+  .streak-badge{
+    display:inline-block;padding:5px 14px;border-radius:20px;
+    font-size:13px;font-weight:700;animation:pulseIn 0.4s ease;
+  }
+  .streak-bonus{background:var(--verde-claro);color:var(--verde);}
+  .streak-erro{background:var(--vermelho-claro);color:var(--vermelho);}
+  @keyframes pulseIn{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
+
+  /* QUESTÃO */
+  .questao-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .questao-num{
+    background:var(--azul-escuro);color:var(--branco);
+    border-radius:8px;padding:4px 13px;font-size:13px;font-weight:700;
+  }
+  .questao-texto{
+    font-size:16px;font-weight:600;color:var(--azul-escuro);line-height:1.55;
+    margin-bottom:20px;padding:16px 20px;
+    background:var(--cinza-claro);border-radius:12px;
+    border-left:4px solid var(--azul-claro);
+  }
+
+  /* OPÇÕES — sem revelar certo/errado */
+  .opcoes{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+  .opcao{
+    display:flex;align-items:center;gap:14px;padding:13px 18px;
+    border:2px solid #d1d5db;border-radius:12px;cursor:pointer;
+    transition:all 0.18s;background:var(--branco);
+  }
+  .opcao:hover{border-color:var(--azul-claro);background:var(--azul-muito-claro);transform:translateX(3px);}
+  .opcao.selecionada{border-color:var(--azul-medio);background:var(--azul-muito-claro);}
+  .opcao.bloqueada{pointer-events:none;opacity:0.7;}
+  .opcao.selecionada.bloqueada{opacity:1;}
+  .letra-opcao{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--azul-escuro);color:var(--branco);
+    font-weight:700;font-size:14px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .opcao.selecionada .letra-opcao{background:var(--azul-medio);}
+  .opcao-texto{font-size:14px;color:var(--cinza-texto);line-height:1.4;}
+
+  /* AVISO "RESPONDIDO" */
+  .aviso-respondido{
+    display:none;text-align:center;padding:10px;
+    background:var(--azul-muito-claro);border-radius:10px;
+    color:var(--azul-escuro);font-size:13px;font-weight:600;
+    margin-bottom:16px;
+  }
+
+  /* BTN PRÓXIMA */
+  .btn-proxima{
+    display:none;width:100%;padding:13px;
+    background:linear-gradient(135deg,var(--azul-medio),var(--azul-claro));
+    color:var(--branco);border:none;border-radius:10px;
+    font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;
+  }
+  .btn-proxima:hover{background:linear-gradient(135deg,var(--azul-escuro),var(--azul-medio));}
+
+  /* ── TELA RESULTADO ── */
+  #tela-resultado{display:none;padding:32px 32px 40px;}
+
+  .res-topo{text-align:center;margin-bottom:28px;}
+  .res-trofeu{font-size:60px;margin-bottom:8px;}
+  .res-titulo{font-size:25px;font-weight:800;color:var(--azul-escuro);margin-bottom:4px;}
+  .res-sub{font-size:14px;color:#6b7280;}
+
+  /* CARDS DE PONTUAÇÃO */
+  .resultado-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
+  .oat-card{
+    grid-column:1/-1;
+    background:linear-gradient(135deg,var(--azul-escuro),var(--azul-medio));
+    color:var(--branco);border-radius:14px;padding:20px;text-align:center;
+  }
+  .oat-card .valor{font-size:40px;font-weight:800;}
+  .oat-card .rotulo{font-size:13px;opacity:0.82;margin-top:4px;}
+  .resultado-card{background:var(--cinza-claro);border-radius:14px;padding:18px 12px;text-align:center;}
+  .resultado-card .valor{font-size:30px;font-weight:800;color:var(--azul-escuro);}
+  .resultado-card .rotulo{font-size:12px;color:#6b7280;margin-top:4px;}
+
+  /* STATUS ENVIO */
+  .status-envio{font-size:13px;color:#6b7280;text-align:center;margin-bottom:20px;min-height:20px;}
+  .status-envio.ok{color:var(--verde);}
+  .status-envio.erro{color:var(--vermelho);}
+
+  /* ── RANKING ── */
+  .secao-titulo{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .secao-titulo h3{font-size:16px;font-weight:700;color:var(--azul-escuro);}
+  .btn-atualizar{
+    display:flex;align-items:center;gap:6px;
+    padding:7px 16px;background:var(--azul-muito-claro);
+    color:var(--azul-escuro);border:2px solid var(--azul-claro);
+    border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;
+  }
+  .btn-atualizar:hover{background:var(--azul-claro);color:var(--branco);}
+  .btn-atualizar.girando svg{animation:girar 0.8s linear infinite;}
+  @keyframes girar{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+  #ranking-lista{margin-bottom:28px;}
+  .ranking-item{
+    display:flex;align-items:center;gap:12px;
+    padding:11px 14px;border-radius:10px;margin-bottom:8px;
+    background:var(--cinza-claro);transition:background 0.2s;
+  }
+  .ranking-item.meu{background:var(--azul-muito-claro);border:2px solid var(--azul-claro);}
+  .ranking-pos{
+    width:28px;height:28px;border-radius:50%;
+    background:var(--azul-escuro);color:var(--branco);
+    font-size:13px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .ranking-pos.ouro{background:#ca8a04;}
+  .ranking-pos.prata{background:#71717a;}
+  .ranking-pos.bronze{background:#b45309;}
+  .ranking-nome{flex:1;font-size:14px;font-weight:600;color:var(--cinza-texto);}
+  .ranking-pts{font-size:14px;font-weight:800;color:var(--azul-escuro);}
+  .ranking-vazio{text-align:center;color:#9ca3af;font-size:14px;padding:20px;}
+
+  /* ── GABARITO ── */
+  .gabarito-toggle{
+    width:100%;padding:14px 18px;
+    background:linear-gradient(135deg,#1e3a5f,#2563ab);
+    color:var(--branco);border:none;border-radius:12px;
+    font-size:15px;font-weight:700;cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;
+    transition:all 0.2s;margin-bottom:14px;
+  }
+  .gabarito-toggle:hover{background:linear-gradient(135deg,#0f2040,#1a3a6b);}
+  .toggle-arrow{font-size:18px;transition:transform 0.3s;}
+  .toggle-arrow.aberto{transform:rotate(180deg);}
+
+  #gabarito-conteudo{display:none;}
+  .gabarito-aviso{
+    background:var(--amarelo-claro);border-left:4px solid var(--amarelo);
+    border-radius:8px;padding:10px 14px;margin-bottom:14px;
+    font-size:12px;color:var(--amarelo);font-weight:600;
+  }
+  .gab-item{
+    border:1px solid #e5e7eb;border-radius:12px;
+    margin-bottom:10px;overflow:hidden;
+  }
+  .gab-header{
+    display:flex;align-items:center;gap:10px;padding:10px 14px;
+    font-size:13px;font-weight:700;
+  }
+  .gab-header.acerto{background:var(--verde-claro);color:var(--verde);}
+  .gab-header.erro{background:var(--vermelho-claro);color:var(--vermelho);}
+  .gab-header.sem-resposta{background:var(--amarelo-claro);color:var(--amarelo);}
+  .gab-header .gab-num{
+    width:26px;height:26px;border-radius:50%;
+    background:rgba(0,0,0,0.12);
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;flex-shrink:0;
+  }
+  .gab-header .gab-icone{font-size:16px;margin-left:auto;flex-shrink:0;}
+  .gab-body{padding:10px 14px;background:var(--branco);}
+  .gab-pergunta{font-size:13px;font-weight:600;color:var(--cinza-texto);margin-bottom:8px;line-height:1.5;}
+  .gab-linha{font-size:13px;line-height:1.6;}
+  .gab-correta{color:var(--verde);font-weight:700;}
+  .gab-sua{color:var(--azul-medio);font-weight:600;}
+  .gab-sua.errou{color:var(--vermelho);}
+
+  /* OVERLAY BLOQUEIO */
+  #overlay-bloqueio{
+    display:none;position:fixed;inset:0;
+    background:rgba(26,58,107,0.95);z-index:9999;
+    justify-content:center;align-items:center;
+  }
+  .bloq-card{
+    background:var(--branco);border-radius:20px;
+    padding:40px 36px;max-width:400px;text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  }
+  .bloq-card h2{color:var(--azul-escuro);margin-bottom:10px;font-size:20px;}
+  .bloq-card p{color:#6b7280;font-size:14px;line-height:1.7;}
+
+  @media(max-width:540px){
+    .header{padding:20px;}
+    #tela-nome,#tela-quiz,#tela-resultado{padding:20px 18px;}
+    .status-bar{flex-wrap:wrap;}
+    .resultado-grid{grid-template-columns:1fr;}
+    .oat-card{grid-column:auto;}
+  }
+</style>
+</head>
+<body>
+
+<!-- BLOQUEIO SEGUNDA TENTATIVA -->
+<div id="overlay-bloqueio">
+  <div class="bloq-card">
+    <div style="font-size:52px;margin-bottom:12px;">🔒</div>
+    <h2>Atividade já realizada</h2>
+    <p>Você já respondeu este quiz anteriormente.<br>Cada aluno pode realizá-lo apenas <strong>uma vez</strong>.<br><br>Em caso de dúvida, procure o professor.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="badge">Medicina Veterinária · Aula 12</div>
+    <h1>Semiologia do Sistema Locomotor</h1>
+    <p>Quiz interativo · Prof. Mv. José Alírio S. O. Júnior</p>
+  </div>
+
+  <!-- ══ TELA NOME ══ -->
+  <div id="tela-nome">
+    <h2>Bem-vindo(a)! 👋</h2>
+    <p>Informe seu nome completo para iniciar e registrar seus resultados.</p>
+    <div class="info-box">
+      <strong>📋 Regras do Quiz</strong>
+      ⏱️ 1 minuto por questão — quanto mais rápido, maior a pontuação<br>
+      🏆 100 pts máximos por acerto (proporcional ao tempo restante)<br>
+      🔥 3 acertos seguidos = +10% de bônus · 4+ seguidos = +15%<br>
+      ⚠️ 3 erros seguidos = −15% de penalidade na próxima questão<br>
+      🎓 OAT: 0,25 pt por acerto · máx. 5,0 pts (independe do tempo)<br>
+      🔒 Apenas <strong>1 tentativa</strong> por aluno · gabarito liberado ao finalizar
+    </div>
+    <div class="campo-grupo">
+      <label>Nome completo</label>
+      <input type="text" id="input-nome" placeholder="Digite seu nome completo..." autocomplete="off"/>
+    </div>
+    <button class="btn-primario" onclick="iniciarQuiz()">Iniciar Quiz →</button>
+  </div>
+
+  <!-- ══ TELA QUIZ ══ -->
+  <div id="tela-quiz">
+    <div class="status-bar">
+      <div class="status-item"><span>Aluno</span><span id="lbl-nome" style="font-size:12px;">—</span></div>
+      <div class="status-item"><span>Pontuação</span><span id="lbl-pts">0</span></div>
+      <div class="status-item"><span>Questão</span><span id="lbl-prog">1 / 20</span></div>
+    </div>
+
+    <div class="progresso-wrapper">
+      <div class="progresso-label"><span>Progresso</span><span id="lbl-progbar">0%</span></div>
+      <div class="progresso-bg"><div class="progresso-fill" id="barra-prog" style="width:0%"></div></div>
+    </div>
+
+    <div class="timer-wrapper">
+      <div class="timer-label">
+        <span>Tempo restante</span>
+        <span><strong id="timer-seg">60</strong>s</span>
+      </div>
+      <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar"></div></div>
+    </div>
+
+    <div class="streak-display" id="streak-display"></div>
+
+    <div class="questao-header">
+      <div class="questao-num" id="lbl-qnum">Questão 1</div>
+    </div>
+    <div class="questao-texto" id="questao-texto"></div>
+    <div class="opcoes" id="opcoes-container"></div>
+
+    <div class="aviso-respondido" id="aviso-resp">
+      ✔️ Resposta registrada — aguarde ou avance para a próxima questão
+    </div>
+
+    <button class="btn-proxima" id="btn-proxima" onclick="proximaQuestao()">Próxima questão →</button>
+  </div>
+
+  <!-- ══ TELA RESULTADO ══ -->
+  <div id="tela-resultado">
+
+    <div class="res-topo">
+      <div class="res-trofeu" id="res-trofeu">🏆</div>
+      <div class="res-titulo" id="res-titulo">Parabéns!</div>
+      <div class="res-sub" id="res-sub">Quiz concluído</div>
+    </div>
+
+    <div class="resultado-grid">
+      <div class="oat-card">
+        <div class="valor" id="res-oat">0,00</div>
+        <div class="rotulo">Nota OAT (máx. 5,0 pts)</div>
+      </div>
+      <div class="resultado-card">
+        <div class="valor" id="res-pts">0</div>
+        <div class="rotulo">Pontuação Geral</div>
+      </div>
+      <div class="resultado-card">
+        <div class="valor" id="res-acertos" style="color:var(--verde)">0</div>
+        <div class="rotulo">Acertos</div>
+      </div>
+      <div class="resultado-card">
+        <div class="valor" id="res-erros" style="color:var(--vermelho)">0</div>
+        <div class="rotulo">Erros / Tempo esgotado</div>
+      </div>
+      <div class="resultado-card">
+        <div class="valor" id="res-perc">0%</div>
+        <div class="rotulo">Aproveitamento</div>
+      </div>
+    </div>
+
+    <div class="status-envio" id="status-envio">Enviando resultados...</div>
+
+    <!-- RANKING -->
+    <div class="secao-titulo">
+      <h3>🏅 Ranking da Turma</h3>
+      <button class="btn-atualizar" id="btn-ranking" onclick="carregarRanking()">
+        <svg id="icone-refresh" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        Atualizar
+      </button>
+    </div>
+    <div id="ranking-lista"><div class="ranking-vazio">Carregando ranking...</div></div>
+
+    <!-- GABARITO -->
+    <button class="gabarito-toggle" onclick="toggleGabarito()" id="btn-gabarito">
+      <span>📋 Ver Gabarito Completo</span>
+      <span class="toggle-arrow" id="toggle-arrow">▼</span>
+    </button>
+    <div id="gabarito-conteudo">
+      <div class="gabarito-aviso">
+        ⚠️ O gabarito exibe suas respostas comparadas com as corretas. Use para estudar!
+      </div>
+      <div id="gabarito-items"></div>
+    </div>
+
+  </div><!-- fim tela-resultado -->
+</div><!-- fim container -->
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  CONFIGURAÇÃO
+// ══════════════════════════════════════════════════════════
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwGfFw3l8TIyW1DAGXOR90iCnGC3FVRopaUtDEif4UOtIsaVewaSMv_Lnd6MeNX5TbjXQ/exec';
+const TEMPO_POR_QUESTAO = 60;
+
+// ══════════════════════════════════════════════════════════
+//  BANCO DE QUESTÕES  (gabarito A=0 B=1 C=2 D=3)
+//  Distribuição: Q1=A Q2=B Q3=C Q4=D Q5=A Q6=B Q7=C Q8=D
+//                Q9=A Q10=B Q11=C Q12=D Q13=A Q14=B Q15=C Q16=D
+//                Q17=A Q18=B Q19=C Q20=D
+// ══════════════════════════════════════════════════════════
+const perguntas = [
+  { // 1 — A
+    q: "Qual o primeiro objetivo ao examinar o aparelho locomotor de equídeos?",
+    opts: ["Determinar qual membro está claudicando","Realizar bloqueio anestésico perineural","Solicitar radiografia do membro","Avaliar o líquido sinovial"],
+    c: 0
+  },
+  { // 2 — B
+    q: "Na escala simplificada de Manson e Leaver, qual grau corresponde a 'claudicação muito marcante'?",
+    opts: ["Grau 3","Grau 5","Grau 4","Grau 2"],
+    c: 1
+  },
+  { // 3 — C
+    q: "Qual anestésico local é utilizado nas anestesias perineurais diagnósticas em equídeos?",
+    opts: ["Bupivacaína 0,5%","Mepivacaína 1%","Lidocaína 2%","Procaína 2%"],
+    c: 2
+  },
+  { // 4 — D
+    q: "A numeração dos dígitos bovinos em sentido horário inicia por qual membro?",
+    opts: ["MTE (membros 56)","MTD (membros 34)","MPD (membros 78)","MTE (membro 12)"],
+    c: 3
+  },
+  { // 5 — A
+    q: "Qual exame complementar avalia tendões e ligamentos em tempo real em equídeos?",
+    opts: ["Ultrassonografia","Radiografia","Termografia","Artroscopia"],
+    c: 0
+  },
+  { // 6 — B
+    q: "Por que evitar sedativos na palpação de ossos e articulações em bovinos?",
+    opts: ["Para facilitar a contenção","Para interpretar corretamente as respostas aos estímulos dolorosos","Para reduzir risco de reações alérgicas","Para aumentar a segurança do avaliador"],
+    c: 1
+  },
+  { // 7 — C
+    q: "O grau 2 de claudicação equina (AAEP) é observado claramente em qual situação?",
+    opts: ["Somente em repouso","Ao galope em linha reta","Ao trote, em círculo ou sobre superfície dura","Apenas ao passo em terreno mole"],
+    c: 2
+  },
+  { // 8 — D
+    q: "Na face palmar do III metacarpo equino, qual estrutura corre mais próxima ao osso?",
+    opts: ["Tendão do flexor digital profundo","Tendão do flexor digital superficial","Tendão extensor digital comum","Ligamento suspensor do boleto"],
+    c: 3
+  },
+  { // 9 — A
+    q: "Qual item faz parte da anamnese específica do locomotor bovino?",
+    opts: ["Sistema de produção (Tie stall / Free stall)","Coloração das mucosas oculares","Frequência cardíaca em repouso","Volume urinário nas últimas 24h"],
+    c: 0
+  },
+  { // 10 — B
+    q: "Aumento de volume generalizado com espessamento capsular em equídeos geralmente indica:",
+    opts: ["Fratura aguda subcondral","Processo crônico com fibrose (artrite ou capsulite)","Sinovite aguda infecciosa","Ruptura do ligamento colateral"],
+    c: 1
+  },
+  { // 11 — C
+    q: "Qual é o escore máximo de claudicação na escala simplificada de Manson e Leaver?",
+    opts: ["Grau 6","Grau 7","Grau 5","Grau 4"],
+    c: 2
+  },
+  { // 12 — D
+    q: "Qual exame complementar avalia a composição do fluido articular em bovinos?",
+    opts: ["Radiografia simples","Ultrassonografia modo B","Termografia de superfície","Análise do líquido sinovial"],
+    c: 3
+  },
+  { // 13 — A
+    q: "O pinçamento dos cascos no exame do dígito bovino tem como objetivo principal:",
+    opts: ["Avaliar sensibilidade dolorosa no dígito","Verificar o ângulo de inclinação do casco","Mensurar a espessura da sola","Identificar odor fétido no espaço interdigital"],
+    c: 0
+  },
+  { // 14 — B
+    q: "O grau 5 de claudicação equina (AAEP) corresponde a:",
+    opts: ["Claudicação dificilmente observada ao trote","Impotência funcional do membro","Claudicação óbvia ao passo com movimentação de cabeça","Claudicação consistente ao trote com movimentação de cabeça"],
+    c: 1
+  },
+  { // 15 — C
+    q: "Na inspeção em estação do equídeo claudicante, o que deve ser prioritariamente avaliado?",
+    opts: ["Frequência respiratória e cardíaca","Coloração das conjuntivas e mucosas","Postura, simetria e apoio dos membros","Estado nutricional e escore corporal"],
+    c: 2
+  },
+  { // 16 — D
+    q: "O que é especialmente avaliado na inspeção e palpação do espaço interdigital bovino?",
+    opts: ["Tendão flexor digital profundo","Articulação interfalângica distal","Coxim digital (almofada plantar)","Pele e estruturas do espaço interdigital"],
+    c: 3
+  },
+  { // 17 — A
+    q: "O teste de flexão em equídeos é positivo quando:",
+    opts: ["A claudicação piora imediatamente após a liberação do membro","O animal recusa apoiar o membro durante a flexão","Há aumento de temperatura local durante a manobra","O animal vocaliza durante a flexão"],
+    c: 0
+  },
+  { // 18 — B
+    q: "Qual dado da anamnese bovina está diretamente relacionado a laminite subclínica?",
+    opts: ["Tipo de cobertura das instalações","Produção diária de leite e tipo de alimentação","Histórico reprodutivo da vaca","Frequência de vacinação do rebanho"],
+    c: 1
+  },
+  { // 19 — C
+    q: "Aumento de volume específico na região dorsal do boleto equino pode indicar:",
+    opts: ["Ruptura do tendão flexor digital superficial","Fratura da falange proximal","Sinovite vilonodular","Esparavão ósseo"],
+    c: 2
+  },
+  { // 20 — D
+    q: "Segundo Feitosa, qual é a sequência correta do exame específico do locomotor bovino?",
+    opts: [
+      "Bloqueio → Palpação → Inspeção → Limpeza dos dígitos",
+      "Contenção → Radiografia → Palpação → Bloqueio",
+      "Inspeção em movimento → Bloqueio → Limpeza → Pinçamento",
+      "Inspeção quadrupedal → Inspeção em movimento → Contenção → Limpeza → Pinçamento → Palpação → Bloqueios"
+    ],
+    c: 3
+  }
+];
+
+// ══════════════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════════════
+let nomeAluno    = '';
+let idxAtual     = 0;
+let pontuacao    = 0;
+let acertos      = 0;
+let erros        = 0;
+let streakAcerto = 0;
+let streakErro   = 0;
+let multiplicador = 1;
+let timerID      = null;
+let tempoRestante = TEMPO_POR_QUESTAO;
+let respondeu    = false;
+let respostas    = []; // {idx, respondeu, tempoUsado}
+
+// ══════════════════════════════════════════════════════════
+//  BLOQUEIO — localStorage por nome
+// ══════════════════════════════════════════════════════════
+function chaveLS(nome) {
+  return 'quiz_locomotor__' + (nome||nomeAluno).trim().toLowerCase().replace(/\s+/g,'_');
+}
+function jaFez(nome) { return localStorage.getItem(chaveLS(nome)) === 'concluido'; }
+function marcarFeito() { localStorage.setItem(chaveLS(), 'concluido'); }
+
+// Bloqueia teclas de navegação durante o quiz
+window.addEventListener('keydown', e => {
+  if (['F5','r','R'].includes(e.key) && (e.ctrlKey || e.metaKey || e.key === 'F5')) {
+    const fase = document.getElementById('tela-resultado').style.display;
+    if (fase === 'block') { e.preventDefault(); }
+  }
+});
+// Bloqueia tentativa de fechar/recarregar quando está no resultado
+window.addEventListener('beforeunload', e => {
+  const fase = document.getElementById('tela-resultado').style.display;
+  if (fase === 'block') {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+//  INICIAR
+// ══════════════════════════════════════════════════════════
+function iniciarQuiz() {
+  const nome = document.getElementById('input-nome').value.trim();
+  if (!nome || nome.length < 3) { alert('Por favor, informe seu nome completo.'); return; }
+  if (jaFez(nome)) { document.getElementById('overlay-bloqueio').style.display = 'flex'; return; }
+  nomeAluno = nome;
+  document.getElementById('tela-nome').style.display = 'none';
+  document.getElementById('tela-quiz').style.display = 'block';
+  document.getElementById('lbl-nome').textContent = nome.split(' ')[0];
+  carregarQuestao();
+}
+
+// ══════════════════════════════════════════════════════════
+//  CARREGAR QUESTÃO
+// ══════════════════════════════════════════════════════════
+function carregarQuestao() {
+  respondeu = false;
+  tempoRestante = TEMPO_POR_QUESTAO;
+  const q = perguntas[idxAtual];
+
+  document.getElementById('lbl-qnum').textContent  = `Questão ${idxAtual + 1}`;
+  document.getElementById('questao-texto').textContent = q.q;
+  document.getElementById('lbl-prog').textContent  = `${idxAtual + 1} / 20`;
+  const pct = Math.round((idxAtual / 20) * 100);
+  document.getElementById('barra-prog').style.width = pct + '%';
+  document.getElementById('lbl-progbar').textContent = pct + '%';
+  document.getElementById('aviso-resp').style.display = 'none';
+  document.getElementById('btn-proxima').style.display = 'none';
+  atualizarStatusBar();
+  exibirStreakBadge();
+
+  // Opções
+  const cont = document.getElementById('opcoes-container');
+  cont.innerHTML = '';
+  ['A','B','C','D'].forEach((letra, i) => {
+    const div = document.createElement('div');
+    div.className = 'opcao';
+    div.dataset.idx = i;
+    div.innerHTML = `<div class="letra-opcao">${letra}</div><div class="opcao-texto">${q.opts[i]}</div>`;
+    div.onclick = () => responder(i);
+    cont.appendChild(div);
+  });
+
+  // Timer
+  atualizarTimerUI();
+  clearInterval(timerID);
+  timerID = setInterval(() => {
+    tempoRestante--;
+    atualizarTimerUI();
+    if (tempoRestante <= 0) { clearInterval(timerID); if (!respondeu) timeOut(); }
+  }, 1000);
+}
+
+function atualizarTimerUI() {
+  const pct = (tempoRestante / TEMPO_POR_QUESTAO) * 100;
+  document.getElementById('timer-bar').style.width = pct + '%';
+  document.getElementById('timer-bar').className = 'timer-bar' + (tempoRestante <= 15 ? ' urgente' : '');
+  document.getElementById('timer-seg').textContent = tempoRestante;
+  document.getElementById('timer-seg').className = tempoRestante <= 15 ? 'urgente' : '';
+}
+
+function atualizarStatusBar() {
+  document.getElementById('lbl-pts').textContent = Math.round(pontuacao);
+}
+
+// ══════════════════════════════════════════════════════════
+//  RESPONDER — SEM revelar certo/errado
+// ══════════════════════════════════════════════════════════
+function responder(idx) {
+  if (respondeu) return;
+  respondeu = true;
+  clearInterval(timerID);
+
+  const tempoUsado = TEMPO_POR_QUESTAO - tempoRestante;
+  const acertou = idx === perguntas[idxAtual].c;
+
+  // Registra resposta para gabarito
+  respostas.push({ qIdx: idxAtual, resposta: idx, acertou, tempoUsado });
+
+  // Marca visualmente a opção escolhida (sem revelar certo/errado)
+  const opcoes = document.querySelectorAll('.opcao');
+  opcoes.forEach(o => o.classList.add('bloqueada'));
+  opcoes[idx].classList.add('selecionada');
+
+  // Pontuação (calculada internamente, sem mostrar feedback)
+  if (acertou) {
+    const ptsBase = Math.max(10, Math.round((tempoRestante / TEMPO_POR_QUESTAO) * 100));
+    pontuacao += Math.round(ptsBase * multiplicador);
+    acertos++;
+    streakAcerto++;
+    streakErro = 0;
+    multiplicador = streakAcerto === 3 ? 1.10 : streakAcerto > 3 ? 1.15 : 1;
+  } else {
+    erros++;
+    streakErro++;
+    streakAcerto = 0;
+    multiplicador = streakErro >= 3 ? 0.85 : 1;
+  }
+
+  atualizarStatusBar();
+  document.getElementById('aviso-resp').style.display = 'block';
+  document.getElementById('btn-proxima').style.display = 'block';
+}
+
+// ══════════════════════════════════════════════════════════
+//  TIMEOUT
+// ══════════════════════════════════════════════════════════
+function timeOut() {
+  respondeu = true;
+  respostas.push({ qIdx: idxAtual, resposta: null, acertou: false, tempoUsado: TEMPO_POR_QUESTAO });
+  const opcoes = document.querySelectorAll('.opcao');
+  opcoes.forEach(o => o.classList.add('bloqueada'));
+  erros++;
+  streakErro++;
+  streakAcerto = 0;
+  multiplicador = streakErro >= 3 ? 0.85 : 1;
+  atualizarStatusBar();
+  document.getElementById('aviso-resp').style.display = 'none';
+  document.getElementById('btn-proxima').textContent = '⏰ Tempo esgotado — Próxima →';
+  document.getElementById('btn-proxima').style.display = 'block';
+}
+
+// ══════════════════════════════════════════════════════════
+//  STREAK BADGE
+// ══════════════════════════════════════════════════════════
+function exibirStreakBadge() {
+  const el = document.getElementById('streak-display');
+  if (streakAcerto >= 3) {
+    const pct = streakAcerto === 3 ? 10 : 15;
+    el.innerHTML = `<span class="streak-badge streak-bonus">🔥 ${streakAcerto} acertos seguidos! Bônus +${pct}%</span>`;
+  } else if (streakErro >= 3) {
+    el.innerHTML = `<span class="streak-badge streak-erro">⚠️ 3 erros seguidos — Penalidade −15%</span>`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  PRÓXIMA QUESTÃO
+// ══════════════════════════════════════════════════════════
+function proximaQuestao() {
+  document.getElementById('btn-proxima').textContent = 'Próxima questão →';
+  idxAtual++;
+  if (idxAtual >= perguntas.length) finalizarQuiz();
+  else carregarQuestao();
+}
+
+// ══════════════════════════════════════════════════════════
+//  FINALIZAR
+// ══════════════════════════════════════════════════════════
+function finalizarQuiz() {
+  clearInterval(timerID);
+  marcarFeito(); // bloqueia nova tentativa
+
+  document.getElementById('tela-quiz').style.display = 'none';
+  document.getElementById('tela-resultado').style.display = 'block';
+
+  const oat  = (acertos * 0.25).toFixed(2);
+  const perc = Math.round((acertos / 20) * 100);
+
+  let trofeu = '🏅';
+  if (perc >= 90) trofeu = '🏆';
+  else if (perc >= 70) trofeu = '🥇';
+  else if (perc >= 50) trofeu = '🥈';
+
+  document.getElementById('res-trofeu').textContent  = trofeu;
+  document.getElementById('res-titulo').textContent  = perc >= 60 ? 'Parabéns!' : 'Continue estudando!';
+  document.getElementById('res-sub').textContent     = `${nomeAluno} — ${perc}% de aproveitamento`;
+  document.getElementById('res-oat').textContent     = oat.replace('.', ',');
+  document.getElementById('res-pts').textContent     = Math.round(pontuacao);
+  document.getElementById('res-acertos').textContent = acertos;
+  document.getElementById('res-erros').textContent   = erros;
+  document.getElementById('res-perc').textContent    = perc + '%';
+
+  construirGabarito();
+  enviarResultados(oat);
+  carregarRanking();
+}
+
+// ══════════════════════════════════════════════════════════
+//  GABARITO COMPLETO (só na tela de resultado)
+// ══════════════════════════════════════════════════════════
+function construirGabarito() {
+  const letras = ['A','B','C','D'];
+  const cont = document.getElementById('gabarito-items');
+  cont.innerHTML = '';
+
+  perguntas.forEach((q, i) => {
+    const resp = respostas.find(r => r.qIdx === i);
+    const respostaIdx = resp ? resp.resposta : null;
+    const acertou     = resp ? resp.acertou  : false;
+    const semResp     = respostaIdx === null;
+
+    let classeHeader = semResp ? 'sem-resposta' : acertou ? 'acerto' : 'erro';
+    let icone        = semResp ? '⏰' : acertou ? '✅' : '❌';
+    let labelHeader  = semResp ? 'Não respondida (tempo esgotado)' : acertou ? 'Correto!' : 'Incorreto';
+
+    const div = document.createElement('div');
+    div.className = 'gab-item';
+    div.innerHTML = `
+      <div class="gab-header ${classeHeader}">
+        <div class="gab-num">${i+1}</div>
+        <span>${labelHeader}</span>
+        <span class="gab-icone">${icone}</span>
+      </div>
+      <div class="gab-body">
+        <div class="gab-pergunta">${q.q}</div>
+        <div class="gab-linha gab-correta">✔ Resposta correta: ${letras[q.c]} — ${q.opts[q.c]}</div>
+        ${!semResp
+          ? `<div class="gab-linha gab-sua ${acertou ? '' : 'errou'}">
+               ${acertou ? '👤 Sua resposta: ' : '✗ Sua resposta: '}${letras[respostaIdx]} — ${q.opts[respostaIdx]}
+             </div>`
+          : `<div class="gab-linha" style="color:#9ca3af;font-style:italic;">Nenhuma resposta registrada</div>`
+        }
+      </div>`;
+    cont.appendChild(div);
+  });
+}
+
+function toggleGabarito() {
+  const div = document.getElementById('gabarito-conteudo');
+  const arrow = document.getElementById('toggle-arrow');
+  const aberto = div.style.display === 'block';
+  div.style.display = aberto ? 'none' : 'block';
+  arrow.className = 'toggle-arrow' + (aberto ? '' : ' aberto');
+  document.getElementById('btn-gabarito').querySelector('span:first-child').textContent =
+    aberto ? '📋 Ver Gabarito Completo' : '📋 Ocultar Gabarito';
+}
+
+// ══════════════════════════════════════════════════════════
+//  RANKING
+// ══════════════════════════════════════════════════════════
+async function carregarRanking() {
+  const btn = document.getElementById('btn-ranking');
+  btn.classList.add('girando');
+  btn.disabled = true;
+
+  const lista = document.getElementById('ranking-lista');
+
+  try {
+    const resp = await fetch(GOOGLE_SCRIPT_URL + '?acao=ranking&t=' + Date.now());
+    const dados = await resp.json();
+    renderRanking(dados);
+  } catch(e) {
+    lista.innerHTML = '<div class="ranking-vazio">❌ Não foi possível carregar o ranking. Tente novamente.</div>';
+  }
+  btn.classList.remove('girando');
+  btn.disabled = false;
+}
+
+function renderRanking(dados) {
+  const lista = document.getElementById('ranking-lista');
+  if (!dados || !dados.length) {
+    lista.innerHTML = '<div class="ranking-vazio">Nenhum resultado registrado ainda.</div>';
+    return;
+  }
+  const top = dados.slice(0, 15);
+  lista.innerHTML = '';
+  top.forEach((item, i) => {
+    const pos = i + 1;
+    let classePos = '';
+    if (pos === 1) classePos = 'ouro';
+    else if (pos === 2) classePos = 'prata';
+    else if (pos === 3) classePos = 'bronze';
+    const euClass = item.nome === nomeAluno ? ' meu' : '';
+    const div = document.createElement('div');
+    div.className = `ranking-item${euClass}`;
+    div.innerHTML = `
+      <div class="ranking-pos ${classePos}">${pos <= 3 ? ['🥇','🥈','🥉'][pos-1] : pos}</div>
+      <div class="ranking-nome">${item.nome}${item.nome === nomeAluno ? ' <span style="font-size:11px;color:var(--azul-claro)">(você)</span>' : ''}</div>
+      <div class="ranking-pts">${item.pontuacaoGeral} pts</div>`;
+    lista.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  ENVIAR AO GOOGLE SHEETS
+// ══════════════════════════════════════════════════════════
+async function enviarResultados(oat) {
+  const statusEl = document.getElementById('status-envio');
+  statusEl.textContent = '⏳ Enviando resultado...';
+  statusEl.className = 'status-envio';
+
+  const agora = new Date();
+  const params = new URLSearchParams({
+    acao: 'registrar',
+    nome: nomeAluno,
+    pontuacaoGeral: Math.round(pontuacao),
+    pontuacaoOAT: oat,
+    acertos: acertos,
+    erros: erros,
+    data: agora.toLocaleDateString('pt-BR'),
+    hora: agora.toLocaleTimeString('pt-BR')
+  });
+
+  try {
+    const resp = await fetch(GOOGLE_SCRIPT_URL + '?' + params.toString(), {
+      method: 'GET',
+      mode: 'no-cors'
+    });
+    // no-cors não permite ler resposta, mas se não lançou erro o envio foi feito
+    statusEl.textContent = '✅ Resultado enviado ao Google Sheets com sucesso!';
+    statusEl.className = 'status-envio ok';
+  } catch(e) {
+    statusEl.textContent = '❌ Erro ao enviar. Verifique a conexão ou anote manualmente.';
+    statusEl.className = 'status-envio erro';
+  }
+}
+</script>
+</body>
+</html>
